@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Help Center | ZU E-Sports</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <style>
+        .faq-item {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            margin-bottom: 0.75rem;
+            overflow: hidden;
+            transition: var(--transition);
+        }
+        .faq-item:hover { border-color: var(--border-accent); }
+        .faq-question {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 1.25rem;
+            cursor: pointer;
+            font-weight: 600;
+            user-select: none;
+        }
+        .faq-arrow { color: var(--accent); font-size: 1rem; transition: transform 0.2s; }
+        .faq-item.open .faq-arrow { transform: rotate(180deg); }
+        .faq-answer {
+            display: none;
+            padding: 0 1.25rem 1.25rem;
+            color: var(--text-secondary);
+            line-height: 1.8;
+            font-size: 0.9rem;
+        }
+        .faq-item.open .faq-answer { display: block; }
+        .help-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            text-align: center;
+            transition: var(--transition);
+        }
+        .help-card:hover { border-color: var(--border-accent); transform: translateY(-2px); }
+        .help-icon { font-size: 2.5rem; margin-bottom: 1rem; }
+    </style>
+</head>
+<body>
+<nav class="navbar">
+    <a href="../index.html" class="nav-logo">⚡ ZU<span>ESPORTS</span></a>
+    <ul class="nav-links" id="nav-links">
+        <li><a href="../index.html">Home</a></li>
+        <li><a href="tournaments.html">Tournaments</a></li>
+        <li><a href="teams.html">Teams</a></li>
+        <li><a href="leaderboard.html">Leaderboard</a></li>
+        <li><a href="help.html" class="active">Help</a></li>
+    </ul>
+    <div class="nav-actions" id="nav-actions"></div>
+    <button class="menu-toggle" id="menu-toggle">☰</button>
+</nav>
+
+<div class="page-wrapper">
+    <div style="background:linear-gradient(135deg,#0d1b2a,#111827);padding:4rem 0 3rem;text-align:center;border-bottom:1px solid var(--border)">
+        <div class="container">
+            <div style="font-size:3rem;margin-bottom:1rem">🆘</div>
+            <h1 style="margin-bottom:0.75rem">Help Center</h1>
+            <p style="color:var(--text-secondary);max-width:500px;margin:0 auto">Find answers to common questions or contact our support team.</p>
+        </div>
+    </div>
+
+    <div class="container section">
+        <!-- QUICK HELP CARDS -->
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:1.5rem;margin-bottom:3rem">
+            <div class="help-card">
+                <div class="help-icon">🎮</div>
+                <h3 style="margin-bottom:0.5rem">Getting Started</h3>
+                <p style="color:var(--text-muted);font-size:0.85rem">New to the platform? Learn how to register and join your first tournament.</p>
+            </div>
+            <div class="help-card">
+                <div class="help-icon">👥</div>
+                <h3 style="margin-bottom:0.5rem">Teams</h3>
+                <p style="color:var(--text-muted);font-size:0.85rem">Create a team, add players, and manage your roster.</p>
+            </div>
+            <div class="help-card">
+                <div class="help-icon">🏆</div>
+                <h3 style="margin-bottom:0.5rem">Tournaments</h3>
+                <p style="color:var(--text-muted);font-size:0.85rem">Register for tournaments, view brackets, and track your results.</p>
+            </div>
+            <div class="help-card" onclick="isLoggedIn() ? (window.location.href='/pages/dashboard.html#support') : (window.location.href='/pages/login.html')" style="cursor:pointer">
+                <div class="help-icon">📩</div>
+                <h3 style="margin-bottom:0.5rem">Contact Support</h3>
+                <p style="color:var(--text-muted);font-size:0.85rem">Can't find your answer? Submit a support ticket and we'll help.</p>
+            </div>
+        </div>
+
+        <!-- QUICK START GUIDE -->
+        <h2 style="margin-bottom:1.5rem">📖 Quick Start Guide</h2>
+        <div class="card card-body" style="margin-bottom:3rem">
+            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:1.5rem">
+                <div style="text-align:center">
+                    <div style="width:40px;height:40px;border-radius:50%;background:rgba(0,212,255,0.15);border:1px solid var(--border-accent);display:flex;align-items:center;justify-content:center;margin:0 auto 0.75rem;font-family:var(--font-display);font-weight:900;color:var(--accent)">1</div>
+                    <h4 style="margin-bottom:0.4rem">Create Account</h4>
+                    <p style="color:var(--text-muted);font-size:0.85rem">Register with your university email and set your gaming ID.</p>
+                </div>
+                <div style="text-align:center">
+                    <div style="width:40px;height:40px;border-radius:50%;background:rgba(0,212,255,0.15);border:1px solid var(--border-accent);display:flex;align-items:center;justify-content:center;margin:0 auto 0.75rem;font-family:var(--font-display);font-weight:900;color:var(--accent)">2</div>
+                    <h4 style="margin-bottom:0.4rem">Create a Team</h4>
+                    <p style="color:var(--text-muted);font-size:0.85rem">Go to Dashboard → My Team and create your team with a name and game.</p>
+                </div>
+                <div style="text-align:center">
+                    <div style="width:40px;height:40px;border-radius:50%;background:rgba(0,212,255,0.15);border:1px solid var(--border-accent);display:flex;align-items:center;justify-content:center;margin:0 auto 0.75rem;font-family:var(--font-display);font-weight:900;color:var(--accent)">3</div>
+                    <h4 style="margin-bottom:0.4rem">Add Players</h4>
+                    <p style="color:var(--text-muted);font-size:0.85rem">Add up to 5+ players to your roster using their usernames.</p>
+                </div>
+                <div style="text-align:center">
+                    <div style="width:40px;height:40px;border-radius:50%;background:rgba(0,212,255,0.15);border:1px solid var(--border-accent);display:flex;align-items:center;justify-content:center;margin:0 auto 0.75rem;font-family:var(--font-display);font-weight:900;color:var(--accent)">4</div>
+                    <h4 style="margin-bottom:0.4rem">Register for Tournament</h4>
+                    <p style="color:var(--text-muted);font-size:0.85rem">Browse tournaments and click "Register Team" on any open tournament.</p>
+                </div>
+                <div style="text-align:center">
+                    <div style="width:40px;height:40px;border-radius:50%;background:rgba(0,212,255,0.15);border:1px solid var(--border-accent);display:flex;align-items:center;justify-content:center;margin:0 auto 0.75rem;font-family:var(--font-display);font-weight:900;color:var(--accent)">5</div>
+                    <h4 style="margin-bottom:0.4rem">Compete!</h4>
+                    <p style="color:var(--text-muted);font-size:0.85rem">Wait for admin approval, then check your match schedule and play!</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- FAQ -->
+        <h2 style="margin-bottom:1.5rem">❓ Frequently Asked Questions</h2>
+        <div id="faq-container">
+            <!-- FAQs are generated by JS below -->
+        </div>
+
+        <!-- CONTACT SUPPORT (if logged in) -->
+        <div id="support-section" class="hidden" style="margin-top:3rem">
+            <h2 style="margin-bottom:1.5rem">📩 Submit a Support Request</h2>
+            <div class="card" style="max-width:600px">
+                <div class="card-body">
+                    <div id="support-alert"></div>
+                    <div class="form-group">
+                        <label class="form-label">Subject</label>
+                        <input type="text" id="s-subject" class="form-control" placeholder="What do you need help with?">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Message</label>
+                        <textarea id="s-message" class="form-control" rows="4" placeholder="Describe your issue in detail..."></textarea>
+                    </div>
+                    <button class="btn btn-primary" onclick="submitSupport()">Send Request</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="login-cta" class="hidden" style="margin-top:3rem;text-align:center">
+            <p style="color:var(--text-muted);margin-bottom:1rem">Need more help? Login to submit a support ticket.</p>
+            <a href="login.html" class="btn btn-primary">Login to Get Help</a>
+        </div>
+    </div>
+</div>
+
+<footer>
+    <div class="footer-title">⚡ ZU ESPORTS</div>
+    <p>Faculty of Computers & Informatics — Zagazig University</p>
+</footer>
+
+<script src="../js/app.js"></script>
+<script>
+const faqs = [
+    { q: "How do I create a team?", a: "After logging in, go to Dashboard → My Team. Click 'Create New Team', fill in your team name, tag, and select your game, then click Create. You'll automatically become the captain." },
+    { q: "How do I add players to my team?", a: "In Dashboard → My Team, click 'Add Player' and type the username of the player you want to add. They must already have an account on the platform. The player will receive a notification." },
+    { q: "How do I register my team for a tournament?", a: "Browse tournaments and click on one that has 'Registration Open' status. Click the 'Register Team' button. You must be the team captain. Your registration will be reviewed by the admin." },
+    { q: "Why hasn't my registration been approved?", a: "Admins review all registrations before approving. This usually takes 1–2 days. You'll receive a notification once your registration is approved or rejected. Make sure your team meets all requirements." },
+    { q: "How are match schedules decided?", a: "After all teams are registered and approved, the admin generates the bracket and schedules matches. You'll receive a notification when your match is scheduled with the date and time." },
+    { q: "What formats are available for tournaments?", a: "We support three formats: Single Elimination (one loss = out), Double Elimination (need two losses to be out), and Round Robin (every team plays every other team)." },
+    { q: "How are rankings calculated?", a: "Team rankings on the leaderboard are based on total wins across all completed matches. Win rate (wins ÷ total matches × 100%) is also shown as a tiebreaker." },
+    { q: "Can I be on multiple teams?", a: "You can be a member (player) of multiple teams, but you can only be the captain of one team. To join another team, the captain of that team must add you by your username." },
+    { q: "What should I do if there's a dispute about a match result?", a: "Contact the admin through the Support section in your Dashboard. Provide details about the match, including tournament name, round, and the issue. Admins can correct results." },
+    { q: "How do I contact support?", a: "Log in and go to Dashboard → Support. Fill in your subject and message and submit the request. An admin will respond as soon as possible. You'll get a notification when there's a reply." },
+    { q: "I forgot my password. What do I do?", a: "Currently, please contact an admin via the support form (if logged in) or reach out through official university channels. Password reset by email will be available in a future update." },
+    { q: "Can I withdraw from a tournament?", a: "If the tournament hasn't started yet, contact an admin via the support ticket system requesting withdrawal. After matches begin, withdrawals affect other teams so they require admin review." }
+];
+
+// Render FAQs
+const container = document.getElementById('faq-container');
+container.innerHTML = faqs.map((f, i) => `
+    <div class="faq-item" id="faq-${i}">
+        <div class="faq-question" onclick="toggleFaq(${i})">
+            <span>${f.q}</span>
+            <span class="faq-arrow">▼</span>
+        </div>
+        <div class="faq-answer">${f.a}</div>
+    </div>
+`).join('');
+
+function toggleFaq(i) {
+    const item = document.getElementById(`faq-${i}`);
+    item.classList.toggle('open');
+}
+
+// Show support form if logged in
+document.addEventListener('DOMContentLoaded', () => {
+    if (isLoggedIn()) {
+        document.getElementById('support-section').classList.remove('hidden');
+    } else {
+        document.getElementById('login-cta').classList.remove('hidden');
+    }
+});
+
+async function submitSupport() {
+    const subject = document.getElementById('s-subject').value.trim();
+    const message = document.getElementById('s-message').value.trim();
+    const alertBox = document.getElementById('support-alert');
+
+    if (!subject || !message) {
+        alertBox.innerHTML = '<div class="alert alert-error">Please fill in all fields.</div>';
+        return;
+    }
+
+    const res = await POST('/support', { subject, message });
+    if (res && res.ok) {
+        alertBox.innerHTML = '<div class="alert alert-success">✅ Request submitted! We will get back to you soon.</div>';
+        document.getElementById('s-subject').value = '';
+        document.getElementById('s-message').value = '';
+    } else {
+        alertBox.innerHTML = `<div class="alert alert-error">${res?.data?.error || 'Failed.'}</div>`;
+    }
+}
+</script>
+</body>
+</html>

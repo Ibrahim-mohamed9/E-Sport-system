@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Team | ZU E-Sports</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+<nav class="navbar">
+    <a href="../index.html" class="nav-logo">⚡ ZU<span>ESPORTS</span></a>
+    <ul class="nav-links" id="nav-links">
+        <li><a href="../index.html">Home</a></li>
+        <li><a href="tournaments.html">Tournaments</a></li>
+        <li><a href="teams.html" class="active">Teams</a></li>
+    </ul>
+    <div class="nav-actions" id="nav-actions"></div>
+    <button class="menu-toggle" id="menu-toggle">☰</button>
+</nav>
+
+<div class="page-wrapper" id="page-content">
+    <div class="loading" style="padding:5rem"><div class="spinner"></div></div>
+</div>
+
+<footer>
+    <div class="footer-title">⚡ ZU ESPORTS</div>
+    <p>Faculty of Computers & Informatics — Zagazig University</p>
+</footer>
+
+<script src="../js/app.js"></script>
+<script>
+const teamId = new URLSearchParams(window.location.search).get('id');
+
+async function loadTeam() {
+    if (!teamId) {
+        document.getElementById('page-content').innerHTML = '<div class="empty-state" style="padding:5rem"><h3>Team not found</h3></div>';
+        return;
+    }
+
+    const res = await GET(`/teams/${teamId}`);
+    if (!res || !res.ok) {
+        document.getElementById('page-content').innerHTML = '<div class="empty-state" style="padding:5rem"><h3>Team not found</h3></div>';
+        return;
+    }
+
+    const t = res.data;
+    document.title = `${t.name} | ZU E-Sports`;
+    const winRate = t.wins + t.losses > 0 ? Math.round(t.wins / (t.wins + t.losses) * 100) : 0;
+
+    document.getElementById('page-content').innerHTML = `
+        <!-- HEADER -->
+        <div style="background:linear-gradient(135deg,#0d1b2a,#111827);border-bottom:1px solid var(--border);padding:3rem 0">
+            <div class="container">
+                <a href="teams.html" style="color:var(--text-muted);font-size:0.85rem">← Back to Teams</a>
+                <div style="display:flex;align-items:center;gap:1.5rem;margin-top:1rem;flex-wrap:wrap">
+                    <div class="avatar" style="width:80px;height:80px;font-size:1.5rem;border:2px solid var(--border-accent)">${(t.tag||t.name.substring(0,2)).toUpperCase()}</div>
+                    <div>
+                        <h1 style="margin-bottom:4px">${t.name}</h1>
+                        <div style="color:var(--text-muted)">[${t.tag||'—'}] · ${t.game} · Captain: ${t.captain_name}</div>
+                    </div>
+                </div>
+                <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:1rem;margin-top:2rem">
+                    <div style="background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);border-radius:8px;padding:1rem;text-align:center">
+                        <div style="font-family:var(--font-display);font-size:2rem;font-weight:900;color:var(--accent-green)">${t.wins}</div>
+                        <div style="color:var(--text-muted);font-size:0.8rem">Wins</div>
+                    </div>
+                    <div style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:8px;padding:1rem;text-align:center">
+                        <div style="font-family:var(--font-display);font-size:2rem;font-weight:900;color:var(--accent-red)">${t.losses}</div>
+                        <div style="color:var(--text-muted);font-size:0.8rem">Losses</div>
+                    </div>
+                    <div style="background:rgba(0,212,255,0.1);border:1px solid var(--border-accent);border-radius:8px;padding:1rem;text-align:center">
+                        <div style="font-family:var(--font-display);font-size:2rem;font-weight:900;color:var(--accent)">${winRate}%</div>
+                        <div style="color:var(--text-muted);font-size:0.8rem">Win Rate</div>
+                    </div>
+                    <div style="background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:8px;padding:1rem;text-align:center">
+                        <div style="font-family:var(--font-display);font-size:2rem;font-weight:900;color:var(--text-primary)">${(t.members||[]).length}</div>
+                        <div style="color:var(--text-muted);font-size:0.8rem">Players</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CONTENT -->
+        <div class="container section">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:2rem;flex-wrap:wrap">
+                <!-- MEMBERS -->
+                <div>
+                    <h3 style="margin-bottom:1rem">👥 Roster</h3>
+                    <div class="card">
+                        ${(t.members || []).length === 0 ? '<div class="empty-state card-body"><p>No members listed</p></div>' :
+                        (t.members || []).map(m => `
+                            <div style="display:flex;align-items:center;gap:1rem;padding:1rem 1.25rem;border-bottom:1px solid var(--border)">
+                                <div class="avatar">${m.username.substring(0,2).toUpperCase()}</div>
+                                <div style="flex:1">
+                                    <div style="font-weight:600">${m.username}</div>
+                                    <div style="color:var(--text-muted);font-size:0.8rem">${m.gaming_id || 'No gaming ID'}</div>
+                                </div>
+                                <span class="badge ${m.role === 'captain' ? 'badge-ongoing' : 'badge-completed'}">${m.role}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+
+                <!-- TOURNAMENT HISTORY -->
+                <div>
+                    <h3 style="margin-bottom:1rem">🏆 Tournament History</h3>
+                    ${(t.history || []).length === 0 ? '<div class="empty-state card" style="padding:2rem"><div class="icon">🏟️</div><p>No tournament history</p></div>' :
+                    (t.history || []).map(h => `
+                        <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:1rem;margin-bottom:0.75rem;display:flex;justify-content:space-between;align-items:center">
+                            <span style="font-weight:500">${h.tournament_name}</span>
+                            ${statusBadge(h.status)}
+                        </div>
+                    `).join('')}
+
+                    ${t.description ? `
+                        <h3 style="margin-top:1.5rem;margin-bottom:1rem">📝 About</h3>
+                        <div class="card card-body">
+                            <p style="color:var(--text-secondary)">${t.description}</p>
+                        </div>
+                    ` : ''}
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+document.addEventListener('DOMContentLoaded', loadTeam);
+</script>
+</body>
+</html>

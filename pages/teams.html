@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teams | ZU E-Sports</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+<nav class="navbar">
+    <a href="../index.html" class="nav-logo">⚡ ZU<span>ESPORTS</span></a>
+    <ul class="nav-links" id="nav-links">
+        <li><a href="../index.html">Home</a></li>
+        <li><a href="tournaments.html">Tournaments</a></li>
+        <li><a href="teams.html" class="active">Teams</a></li>
+        <li><a href="leaderboard.html">Leaderboard</a></li>
+        <li><a href="help.html">Help</a></li>
+    </ul>
+    <div class="nav-actions" id="nav-actions"></div>
+    <button class="menu-toggle" id="menu-toggle">☰</button>
+</nav>
+
+<div class="page-wrapper">
+    <div class="container section">
+        <h1 style="margin-bottom:1.5rem">👥 Teams</h1>
+
+        <div style="display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:2rem;align-items:center">
+            <div class="search-bar" style="flex:1;min-width:200px;margin:0">
+                <span class="search-icon">🔍</span>
+                <input type="text" id="search-input" placeholder="Search teams..." oninput="filterTeams()">
+            </div>
+            <select id="game-filter" class="form-control" style="width:180px" onchange="filterTeams()">
+                <option value="">All Games</option>
+                <option value="Valorant">Valorant</option>
+                <option value="CS2">CS2</option>
+                <option value="League of Legends">League of Legends</option>
+                <option value="FIFA">FIFA</option>
+            </select>
+        </div>
+
+        <div id="teams-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1.5rem">
+            <div class="loading"><div class="spinner"></div></div>
+        </div>
+    </div>
+</div>
+
+<footer>
+    <div class="footer-title">⚡ ZU ESPORTS</div>
+    <p>Faculty of Computers & Informatics — Zagazig University</p>
+</footer>
+
+<script src="../js/app.js"></script>
+<script>
+let allTeams = [];
+
+async function loadTeams() {
+    const res = await GET('/teams');
+    if (res && res.ok) {
+        allTeams = res.data;
+        renderTeams(allTeams);
+    } else {
+        document.getElementById('teams-grid').innerHTML = '<div class="empty-state"><p>Could not load teams</p></div>';
+    }
+}
+
+function filterTeams() {
+    const search = document.getElementById('search-input').value.toLowerCase();
+    const game = document.getElementById('game-filter').value;
+    const filtered = allTeams.filter(t => {
+        return (!search || t.name.toLowerCase().includes(search) || (t.tag||'').toLowerCase().includes(search))
+            && (!game || t.game === game);
+    });
+    renderTeams(filtered);
+}
+
+function renderTeams(teams) {
+    const grid = document.getElementById('teams-grid');
+    if (teams.length === 0) {
+        grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><div class="icon">👥</div><h3>No teams found</h3></div>';
+        return;
+    }
+    grid.innerHTML = teams.map(t => `
+        <div class="card" style="cursor:pointer;transition:all 0.2s" onclick="window.location.href='/pages/team-detail.html?id=${t.id}'"
+             onmouseover="this.style.borderColor='var(--border-accent)';this.style.transform='translateY(-3px)'"
+             onmouseout="this.style.borderColor='var(--border)';this.style.transform='none'">
+            <div class="card-body" style="display:flex;align-items:center;gap:1rem;padding:1.25rem">
+                <div class="avatar avatar-lg">${(t.tag || t.name.substring(0,2)).toUpperCase()}</div>
+                <div style="flex:1;min-width:0">
+                    <div style="font-weight:700;font-size:1rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${t.name}</div>
+                    <div style="color:var(--text-muted);font-size:0.8rem">[${t.tag||'—'}] · ${t.game}</div>
+                    <div style="margin-top:6px;display:flex;gap:0.75rem;font-size:0.8rem">
+                        <span style="color:var(--accent-green)">W: ${t.wins}</span>
+                        <span style="color:var(--accent-red)">L: ${t.losses}</span>
+                        <span style="color:var(--text-muted)">👥 ${t.member_count}</span>
+                    </div>
+                </div>
+            </div>
+            <div style="padding:0.75rem 1.25rem;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
+                <span style="color:var(--text-muted);font-size:0.8rem">Captain: ${t.captain_name}</span>
+                <span style="color:var(--accent);font-size:0.8rem">View →</span>
+            </div>
+        </div>
+    `).join('');
+}
+
+document.addEventListener('DOMContentLoaded', loadTeams);
+</script>
+</body>
+</html>

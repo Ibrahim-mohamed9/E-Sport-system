@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tournaments | ZU E-Sports</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+<nav class="navbar">
+    <a href="../index.html" class="nav-logo">⚡ ZU<span>ESPORTS</span></a>
+    <ul class="nav-links" id="nav-links">
+        <li><a href="../index.html">Home</a></li>
+        <li><a href="tournaments.html" class="active">Tournaments</a></li>
+        <li><a href="teams.html">Teams</a></li>
+        <li><a href="leaderboard.html">Leaderboard</a></li>
+        <li><a href="help.html">Help</a></li>
+    </ul>
+    <div class="nav-actions" id="nav-actions"></div>
+    <button class="menu-toggle" id="menu-toggle">☰</button>
+</nav>
+
+<div class="page-wrapper">
+    <div class="container section">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:1rem">
+            <h1>🏟️ Tournaments</h1>
+        </div>
+
+        <!-- Filters -->
+        <div style="display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:2rem;align-items:center">
+            <div class="search-bar" style="flex:1;min-width:200px;margin:0">
+                <span class="search-icon">🔍</span>
+                <input type="text" id="search-input" placeholder="Search tournaments..." oninput="filterTournaments()">
+            </div>
+            <select id="status-filter" class="form-control" style="width:180px" onchange="filterTournaments()">
+                <option value="">All Status</option>
+                <option value="registration">Registration Open</option>
+                <option value="ongoing">Live</option>
+                <option value="upcoming">Upcoming</option>
+                <option value="completed">Completed</option>
+            </select>
+            <select id="game-filter" class="form-control" style="width:180px" onchange="filterTournaments()">
+                <option value="">All Games</option>
+                <option value="Valorant">Valorant</option>
+                <option value="CS2">CS2</option>
+                <option value="League of Legends">League of Legends</option>
+                <option value="FIFA">FIFA</option>
+                <option value="Other">Other</option>
+            </select>
+        </div>
+
+        <div class="tournament-grid" id="tournament-grid">
+            <div class="loading"><div class="spinner"></div> Loading tournaments...</div>
+        </div>
+    </div>
+</div>
+
+<footer>
+    <div class="footer-title">⚡ ZU ESPORTS</div>
+    <p>Faculty of Computers & Informatics — Zagazig University</p>
+</footer>
+
+<script src="../js/app.js"></script>
+<script>
+let allTournaments = [];
+
+async function loadTournaments() {
+    const res = await GET('/tournaments');
+    if (res && res.ok) {
+        allTournaments = res.data;
+        renderTournaments(allTournaments);
+    } else {
+        document.getElementById('tournament-grid').innerHTML = '<div class="empty-state"><div class="icon">❌</div><p>Could not load tournaments</p></div>';
+    }
+}
+
+function filterTournaments() {
+    const search = document.getElementById('search-input').value.toLowerCase();
+    const status = document.getElementById('status-filter').value;
+    const game = document.getElementById('game-filter').value;
+
+    const filtered = allTournaments.filter(t => {
+        const matchesSearch = !search || t.name.toLowerCase().includes(search);
+        const matchesStatus = !status || t.status === status;
+        const matchesGame = !game || t.game === game;
+        return matchesSearch && matchesStatus && matchesGame;
+    });
+
+    renderTournaments(filtered);
+}
+
+function renderTournaments(tournaments) {
+    const grid = document.getElementById('tournament-grid');
+    if (tournaments.length === 0) {
+        grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><div class="icon">🏟️</div><h3>No tournaments found</h3><p>Try adjusting your filters</p></div>';
+        return;
+    }
+
+    grid.innerHTML = tournaments.map(t => `
+        <div class="tournament-card" onclick="window.location.href='/pages/tournament-detail.html?id=${t.id}'">
+            <div class="tournament-card-banner">
+                <span style="z-index:1;position:relative">🎮 ${t.game}</span>
+            </div>
+            <div class="tournament-card-body">
+                <div class="tournament-card-title">${t.name}</div>
+                <div class="tournament-card-meta">
+                    <span class="meta-item">🏆 ${t.prize_pool || 'No prize'}</span>
+                    <span class="meta-item">👥 Max ${t.max_teams} teams</span>
+                    <span class="meta-item">📋 ${t.format.replace(/_/g, ' ')}</span>
+                </div>
+                <p style="color:var(--text-muted);font-size:0.85rem;margin-top:0.5rem;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">
+                    ${t.description || 'No description provided.'}
+                </p>
+            </div>
+            <div class="tournament-card-footer">
+                ${statusBadge(t.status)}
+                <div style="text-align:right">
+                    <div style="color:var(--text-muted);font-size:0.75rem">Starts</div>
+                    <div style="font-weight:600;font-size:0.85rem">${formatDate(t.start_date)}</div>
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
+document.addEventListener('DOMContentLoaded', loadTournaments);
+</script>
+</body>
+</html>

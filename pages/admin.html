@@ -1,0 +1,976 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel | ZU E-Sports</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <style>
+        .admin-header {
+            background: linear-gradient(135deg, #0d1b2a, #1a0a2e);
+            border-bottom: 1px solid rgba(124, 58, 237, 0.4);
+            padding: 1.25rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .admin-badge {
+            background: rgba(124, 58, 237, 0.2);
+            border: 1px solid rgba(124, 58, 237, 0.5);
+            color: #a78bfa;
+            padding: 3px 12px;
+            border-radius: 100px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .action-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- NAVBAR -->
+    <nav class="navbar">
+        <a href="../index.html" class="nav-logo">⚡ ZU<span>ESPORTS</span></a>
+        <ul class="nav-links" id="nav-links">
+            <li><a href="../index.html">Home</a></li>
+            <li><a href="tournaments.html">Tournaments</a></li>
+            <li><a href="teams.html">Teams</a></li>
+        </ul>
+        <div class="nav-actions" id="nav-actions"></div>
+        <button class="menu-toggle" id="menu-toggle">☰</button>
+    </nav>
+
+    <div class="page-wrapper">
+        <div class="dashboard-layout">
+
+            <!-- SIDEBAR -->
+            <aside class="sidebar">
+                <div style="padding:0 14px 1rem;margin-bottom:0.5rem">
+                    <span class="admin-badge">⚙️ Admin</span>
+                </div>
+                <div class="sidebar-section">Overview</div>
+                <ul class="sidebar-nav">
+                    <li><a href="#" onclick="adminTab('overview')" id="tab-overview-link" class="active"><span
+                                class="icon">📊</span> Dashboard</a></li>
+                    <li><a href="#" onclick="adminTab('stats')" id="tab-stats-link"><span class="icon">📈</span>
+                            Statistics</a></li>
+                </ul>
+                <div class="sidebar-section">Manage</div>
+                <ul class="sidebar-nav">
+                    <li><a href="#" onclick="adminTab('tournaments')" id="tab-tournaments-link"><span
+                                class="icon">🏆</span> Tournaments</a></li>
+                    <li><a href="#" onclick="adminTab('registrations')" id="tab-registrations-link"><span
+                                class="icon">📝</span> Registrations</a></li>
+                    <li><a href="#" onclick="adminTab('matches')" id="tab-matches-link"><span class="icon">⚔️</span>
+                            Matches</a></li>
+                    <li><a href="#" onclick="adminTab('teams')" id="tab-teams-link"><span class="icon">👥</span>
+                            Teams</a></li>
+                    <li><a href="#" onclick="adminTab('users')" id="tab-users-link"><span class="icon">👤</span>
+                            Users</a></li>
+                </ul>
+                <div class="sidebar-section">Communication</div>
+                <ul class="sidebar-nav">
+                    <li><a href="#" onclick="adminTab('announcements')" id="tab-announcements-link"><span
+                                class="icon">📢</span> Announcements</a></li>
+                    <li><a href="#" onclick="adminTab('notifications')" id="tab-notifications-link"><span
+                                class="icon">🔔</span> Notifications</a></li>
+                    <li><a href="#" onclick="adminTab('support')" id="tab-support-link"><span class="icon">🆘</span>
+                            Support Tickets</a></li>
+                </ul>
+                <div class="sidebar-section">Account</div>
+                <ul class="sidebar-nav">
+                    <li><a href="dashboard.html"><span class="icon">👤</span> My Profile</a></li>
+                    <li><a href="#" onclick="logout()"><span class="icon">🚪</span> Logout</a></li>
+                </ul>
+            </aside>
+
+            <!-- MAIN -->
+            <main class="main-content" id="main-content">
+                <div class="loading">
+                    <div class="spinner"></div> Loading admin panel...
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- CREATE TOURNAMENT MODAL -->
+    <div class="modal-overlay" id="create-tournament-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <span class="modal-title">🏆 Create Tournament</span>
+                <button class="modal-close" onclick="closeModal('create-tournament-modal')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div id="ct-alert"></div>
+                <div class="form-group">
+                    <label class="form-label">Tournament Name *</label>
+                    <input type="text" id="ct-name" class="form-control" placeholder="Spring Valorant Championship">
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+                    <div class="form-group">
+                        <label class="form-label">Game *</label>
+                        <select id="ct-game" class="form-control">
+                            <option>Valorant</option>
+                            <option>CS2</option>
+                            <option>League of Legends</option>
+                            <option>FIFA</option>
+                            <option>Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Format</label>
+                        <select id="ct-format" class="form-control">
+                            <option value="single_elimination">Single Elimination</option>
+                            <option value="double_elimination">Double Elimination</option>
+                            <option value="round_robin">Round Robin</option>
+                        </select>
+                    </div>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+                    <div class="form-group">
+                        <label class="form-label">Max Teams</label>
+                        <input type="number" id="ct-max" class="form-control" value="8" min="2">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Prize Pool</label>
+                        <input type="text" id="ct-prize" class="form-control" placeholder="500 EGP">
+                    </div>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+                    <div class="form-group">
+                        <label class="form-label">Start Date *</label>
+                        <input type="date" id="ct-start" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">End Date</label>
+                        <input type="date" id="ct-end" class="form-control">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Reg. Deadline</label>
+                    <input type="date" id="ct-deadline" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Description</label>
+                    <textarea id="ct-desc" class="form-control" placeholder="Describe the tournament..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Rules</label>
+                    <textarea id="ct-rules" class="form-control"
+                        placeholder="1. Rule one&#10;2. Rule two..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('create-tournament-modal')">Cancel</button>
+                <button class="btn btn-primary" onclick="createTournament()">Create Tournament</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCHEDULE MATCH MODAL -->
+    <div class="modal-overlay" id="schedule-match-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <span class="modal-title">⚔️ Schedule Match</span>
+                <button class="modal-close" onclick="closeModal('schedule-match-modal')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div id="sm-alert"></div>
+                <div class="form-group">
+                    <label class="form-label">Tournament *</label>
+                    <select id="sm-tournament" class="form-control" onchange="loadTeamsForMatch()">
+                        <option value="">Select tournament...</option>
+                    </select>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+                    <div class="form-group">
+                        <label class="form-label">Team 1 *</label>
+                        <select id="sm-team1" class="form-control">
+                            <option>Select tournament first</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Team 2 *</label>
+                        <select id="sm-team2" class="form-control">
+                            <option>Select tournament first</option>
+                        </select>
+                    </div>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+                    <div class="form-group">
+                        <label class="form-label">Round *</label>
+                        <input type="number" id="sm-round" class="form-control" value="1" min="1">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Match Date & Time</label>
+                        <input type="datetime-local" id="sm-date" class="form-control">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('schedule-match-modal')">Cancel</button>
+                <button class="btn btn-primary" onclick="scheduleMatch()">Schedule Match</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- UPDATE RESULT MODAL -->
+    <div class="modal-overlay" id="result-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <span class="modal-title">📊 Update Match Result</span>
+                <button class="modal-close" onclick="closeModal('result-modal')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div id="result-alert"></div>
+                <p id="result-match-info" style="color:var(--text-secondary);margin-bottom:1.5rem;font-weight:600"></p>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem">
+                    <div class="form-group">
+                        <label class="form-label" id="score1-label">Team 1 Score</label>
+                        <input type="number" id="score1" class="form-control" value="0" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" id="score2-label">Team 2 Score</label>
+                        <input type="number" id="score2" class="form-control" value="0" min="0">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Winner *</label>
+                    <select id="winner-select" class="form-control">
+                        <option value="">Select winner...</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('result-modal')">Cancel</button>
+                <button class="btn btn-success" onclick="submitResult()">Save Result</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/app.js"></script>
+    <script>
+        if (!requireAdminAuth()) { /* redirect handled */ }
+
+        let allTournaments = [];
+        let selectedMatchId = null;
+
+        async function loadAdminData() {
+            const res = await GET('/admin/stats');
+            if (res && res.ok) {
+                adminTab('overview', res.data);
+            } else {
+                adminTab('overview', null);
+            }
+            // Pre-load tournaments for modals
+            const tRes = await GET('/tournaments');
+            if (tRes && tRes.ok) allTournaments = tRes.data;
+        }
+
+        function adminTab(tab, data) {
+            document.querySelectorAll('.sidebar-nav a').forEach(a => a.classList.remove('active'));
+            const link = document.getElementById(`tab-${tab}-link`);
+            if (link) link.classList.add('active');
+
+            const tabs = {
+                overview: renderOverview,
+                stats: renderStats,
+                tournaments: renderTournaments,
+                registrations: renderRegistrations,
+                matches: renderMatches,
+                teams: renderTeams,
+                users: renderUsers,
+                announcements: renderAnnouncements,
+                notifications: renderNotifBroadcast,
+                support: renderSupport
+            };
+            if (tabs[tab]) tabs[tab](data);
+        }
+
+        async function renderOverview(data) {
+            const content = document.getElementById('main-content');
+            let stats = data;
+            if (!stats) {
+                const res = await GET('/admin/stats');
+                stats = res && res.ok ? res.data : {};
+            }
+
+            content.innerHTML = `
+        <h2 style="margin-bottom:1.5rem">📊 Admin Dashboard</h2>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <span class="stat-number">${stats.users || 0}</span>
+                <span class="stat-label">Total Players</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number">${stats.teams || 0}</span>
+                <span class="stat-label">Total Teams</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number">${stats.tournaments || 0}</span>
+                <span class="stat-label">Tournaments</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number">${stats.matches || 0}</span>
+                <span class="stat-label">Matches Played</span>
+            </div>
+            <div class="stat-card" style="border-color:${stats.pendingRegistrations > 0 ? 'var(--accent-yellow)' : 'var(--border)'}">
+                <span class="stat-number" style="color:${stats.pendingRegistrations > 0 ? 'var(--accent-yellow)' : 'var(--accent)'}">
+                    ${stats.pendingRegistrations || 0}
+                </span>
+                <span class="stat-label">Pending Registrations</span>
+            </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-top:1rem;flex-wrap:wrap">
+            <div class="card">
+                <div class="card-header"><h3>🚀 Quick Actions</h3></div>
+                <div class="card-body" style="display:flex;flex-direction:column;gap:0.75rem">
+                    <button class="btn btn-primary btn-full" onclick="openModal('create-tournament-modal')">➕ Create Tournament</button>
+                    <button class="btn btn-secondary btn-full" onclick="openModal('schedule-match-modal')">⚔️ Schedule Match</button>
+                    <button class="btn btn-secondary btn-full" onclick="adminTab('registrations')">📝 Review Registrations ${stats.pendingRegistrations > 0 ? `<span class="badge badge-pending" style="margin-left:8px">${stats.pendingRegistrations}</span>` : ''}</button>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header"><h3>🏆 Recent Tournaments</h3></div>
+                <div class="card-body" style="padding:0">
+                    ${(stats.recentTournaments || []).length === 0 ? '<div class="empty-state" style="padding:1.5rem"><p>No tournaments yet</p></div>' :
+                    (stats.recentTournaments || []).map(t => `
+                        <div style="padding:0.9rem 1.25rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
+                            <div>
+                                <div style="font-weight:600;font-size:0.9rem">${t.name}</div>
+                                <div style="color:var(--text-muted);font-size:0.8rem">${t.game}</div>
+                            </div>
+                            ${statusBadge(t.status)}
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        </div>
+    `;
+        }
+
+        async function renderStats() {
+            const content = document.getElementById('main-content');
+            content.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+            const [tourRes, teamRes] = await Promise.all([GET('/tournaments'), GET('/leaderboard')]);
+            const tournaments = tourRes?.ok ? tourRes.data : [];
+            const teams = teamRes?.ok ? teamRes.data : [];
+
+            const statusCount = {};
+            tournaments.forEach(t => { statusCount[t.status] = (statusCount[t.status] || 0) + 1; });
+
+            content.innerHTML = `
+        <h2 style="margin-bottom:1.5rem">📈 Statistics</h2>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem">
+            <div class="card">
+                <div class="card-header"><h3>Tournaments by Status</h3></div>
+                <div class="card-body">
+                    ${Object.entries(statusCount).map(([s, c]) => `
+                        <div style="display:flex;justify-content:space-between;align-items:center;padding:0.6rem 0;border-bottom:1px solid var(--border)">
+                            ${statusBadge(s)}
+                            <span style="font-family:var(--font-display);font-weight:700;color:var(--accent)">${c}</span>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header"><h3>🥇 Top Teams</h3></div>
+                <div class="card-body" style="padding:0">
+                    ${teams.slice(0, 5).map((t, i) => `
+                        <div style="padding:0.9rem 1.25rem;border-bottom:1px solid var(--border);display:flex;gap:1rem;align-items:center">
+                            <span class="rank-number">#${i + 1}</span>
+                            <div style="flex:1">
+                                <div style="font-weight:600">${t.name}</div>
+                                <div style="color:var(--text-muted);font-size:0.8rem">${t.game}</div>
+                            </div>
+                            <div style="text-align:right;font-size:0.85rem">
+                                <span style="color:var(--accent-green)">${t.wins}W</span> / <span style="color:var(--accent-red)">${t.losses}L</span>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        </div>
+    `;
+        }
+
+        async function renderTournaments() {
+            const content = document.getElementById('main-content');
+            content.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+            const res = await GET('/tournaments');
+            const tournaments = res?.ok ? res.data : [];
+            allTournaments = tournaments;
+
+            content.innerHTML = `
+        <div class="action-row">
+            <h2>🏆 Tournaments</h2>
+            <button class="btn btn-primary" onclick="openModal('create-tournament-modal')">➕ Create Tournament</button>
+        </div>
+        <div class="card">
+            <div class="table-wrapper">
+                <table>
+                    <thead><tr><th>Name</th><th>Game</th><th>Status</th><th>Start</th><th>Max Teams</th><th>Actions</th></tr></thead>
+                    <tbody>
+                        ${tournaments.length === 0 ? '<tr><td colspan="6" class="empty-state">No tournaments yet</td></tr>' :
+                    tournaments.map(t => `
+                            <tr>
+                                <td style="font-weight:600;color:var(--text-primary)">${t.name}</td>
+                                <td>${t.game}</td>
+                                <td>${statusBadge(t.status)}</td>
+                                <td>${formatDate(t.start_date)}</td>
+                                <td>${t.max_teams}</td>
+                                <td>
+                                    <div style="display:flex;gap:0.5rem;flex-wrap:wrap">
+                                        <a href="/pages/tournament-detail.html?id=${t.id}" class="btn btn-sm btn-secondary">View</a>
+                                        <button class="btn btn-sm btn-primary" onclick="generateBracket(${t.id}, '${t.name}')">⚡ Generate Bracket</button>
+                                        <select class="form-control" style="width:140px;padding:4px 8px;font-size:0.8rem" onchange="changeStatus(${t.id}, this.value)">
+                                            <option value="">Change status...</option>
+                                            <option value="upcoming">Upcoming</option>
+                                            <option value="registration">Registration</option>
+                                            <option value="ongoing">Ongoing</option>
+                                            <option value="completed">Completed</option>
+                                        </select>
+                                    </div>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    `;
+        }
+
+        async function renderRegistrations() {
+            const content = document.getElementById('main-content');
+            content.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+
+            if (allTournaments.length === 0) {
+                const res = await GET('/tournaments');
+                if (res?.ok) allTournaments = res.data;
+            }
+
+            // Load registrations for all tournaments
+            const regPromises = allTournaments.map(t =>
+                GET(`/tournaments/${t.id}/registrations`).then(r => ({
+                    tournament: t,
+                    regs: r?.ok ? r.data : []
+                }))
+            );
+            const results = await Promise.all(regPromises);
+
+            const allRegs = results.flatMap(r => r.regs.map(reg => ({
+                ...reg,
+                tournament_name: r.tournament.name,
+                tournament_id: r.tournament.id   // ← carry tournament_id forward
+            })));
+            const pending = allRegs.filter(r => r.status === 'pending');
+
+            content.innerHTML = `
+        <h2 style="margin-bottom:1.5rem">📝 Team Registrations</h2>
+        ${pending.length > 0 ? `<div class="alert alert-warning">${pending.length} pending registration(s) need your review</div>` : ''}
+        <div class="card">
+            <div class="table-wrapper">
+                <table>
+                    <thead><tr><th>Team</th><th>Tournament</th><th>Captain</th><th>Submitted</th><th>Status</th><th>Actions</th></tr></thead>
+                    <tbody>
+                        ${allRegs.length === 0 ? '<tr><td colspan="6" class="empty-state">No registrations yet</td></tr>' :
+                    allRegs.map(r => `
+                            <tr>
+                                <td style="font-weight:600;color:var(--text-primary)">[${r.tag || '—'}] ${r.team_name}</td>
+                                <td style="color:var(--text-secondary)">${r.tournament_name}</td>
+                                <td>${r.captain_name}</td>
+                                <td style="color:var(--text-muted)">${formatDate(r.registered_at)}</td>
+                                <td>${statusBadge(r.status)}</td>
+                                <td>
+                                    ${r.status === 'pending' ? `
+                                        <div style="display:flex;gap:0.5rem">
+                                            <button class="btn btn-sm btn-success" onclick="reviewReg(${r.id}, ${r.tournament_id}, 'approved', this)">✅ Approve</button>
+                                            <button class="btn btn-sm btn-danger" onclick="reviewReg(${r.id}, ${r.tournament_id}, 'rejected', this)">❌ Reject</button>
+                                        </div>
+                                    ` : '<span style="color:var(--text-muted);font-size:0.8rem">Reviewed</span>'}
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    `;
+        }
+
+        // Map registration id → tournament id, populated during render
+        let regTournamentMap = {};
+
+        async function reviewReg(regId, tournamentId, status, btn) {
+            btn.disabled = true;
+            const res = await api(`/tournaments/${tournamentId}/registrations/${regId}`, {
+                method: 'PUT',
+                body: JSON.stringify({ status })
+            });
+            if (res && res.ok) {
+                showToast(`Registration ${status}!`, status === 'approved' ? 'success' : 'info');
+                renderRegistrations();
+            } else {
+                showToast(res?.data?.error || 'Failed to update registration', 'error');
+                btn.disabled = false;
+            }
+        }
+
+        async function renderMatches() {
+            const content = document.getElementById('main-content');
+            content.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+            const res = await GET('/matches');
+            const matches = res?.ok ? res.data : [];
+
+            content.innerHTML = `
+        <div class="action-row">
+            <h2>⚔️ Matches</h2>
+            <button class="btn btn-primary" onclick="openScheduleMatch()">➕ Schedule Match</button>
+        </div>
+        <div class="card">
+            <div class="table-wrapper">
+                <table>
+                    <thead><tr><th>Tournament</th><th>Round</th><th>Team 1</th><th>vs</th><th>Team 2</th><th>Score</th><th>Status</th><th>Actions</th></tr></thead>
+                    <tbody>
+                        ${matches.length === 0 ? '<tr><td colspan="8" class="empty-state">No matches scheduled</td></tr>' :
+                    matches.map(m => `
+                            <tr>
+                                <td style="font-size:0.85rem;color:var(--text-muted)">${m.tournament_name}</td>
+                                <td>R${m.round}</td>
+                                <td style="color:${m.winner_id == m.team1_id ? 'var(--accent-green)' : 'inherit'}">[${m.team1_tag}] ${m.team1_name}</td>
+                                <td style="color:var(--text-muted)">vs</td>
+                                <td style="color:${m.winner_id == m.team2_id ? 'var(--accent-green)' : 'inherit'}">[${m.team2_tag}] ${m.team2_name}</td>
+                                <td style="font-family:var(--font-display);color:var(--accent)">${m.score_team1}-${m.score_team2}</td>
+                                <td>${statusBadge(m.status)}</td>
+                                <td>
+                                    ${m.status !== 'completed' ? `
+                                        <button class="btn btn-sm btn-primary" onclick="openResultModal(${m.id},'${m.team1_name}','${m.team2_name}',${m.team1_id},${m.team2_id})">
+                                            📊 Result
+                                        </button>
+                                    ` : '<span style="color:var(--accent-green);font-size:0.8rem">✅ Done</span>'}
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    `;
+        }
+
+        function openResultModal(matchId, team1Name, team2Name, team1Id, team2Id) {
+            selectedMatchId = matchId;
+            document.getElementById('result-match-info').textContent = `${team1Name} vs ${team2Name}`;
+            document.getElementById('score1-label').textContent = `${team1Name} Score`;
+            document.getElementById('score2-label').textContent = `${team2Name} Score`;
+            const winnerSelect = document.getElementById('winner-select');
+            winnerSelect.innerHTML = `
+        <option value="">Select winner...</option>
+        <option value="${team1Id}">${team1Name}</option>
+        <option value="${team2Id}">${team2Name}</option>
+    `;
+            document.getElementById('score1').value = 0;
+            document.getElementById('score2').value = 0;
+            document.getElementById('result-alert').innerHTML = '';
+            openModal('result-modal');
+        }
+
+        async function submitResult() {
+            const winner_id = document.getElementById('winner-select').value;
+            const score_team1 = document.getElementById('score1').value;
+            const score_team2 = document.getElementById('score2').value;
+            const alertBox = document.getElementById('result-alert');
+
+            if (!winner_id) {
+                alertBox.innerHTML = '<div class="alert alert-error">Please select a winner.</div>';
+                return;
+            }
+
+            const res = await PUT(`/matches/${selectedMatchId}/result`, {
+                winner_id: parseInt(winner_id),
+                score_team1: parseInt(score_team1),
+                score_team2: parseInt(score_team2)
+            });
+
+            if (res && res.ok) {
+                showToast('Result saved!', 'success');
+                closeModal('result-modal');
+                renderMatches();
+            } else {
+                alertBox.innerHTML = `<div class="alert alert-error">${res?.data?.error || 'Failed.'}</div>`;
+            }
+        }
+
+        async function renderTeams() {
+            const content = document.getElementById('main-content');
+            content.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+            const res = await GET('/teams');
+            const teams = res?.ok ? res.data : [];
+
+            content.innerHTML = `
+        <h2 style="margin-bottom:1.5rem">👥 Teams (${teams.length})</h2>
+        <div class="card">
+            <div class="table-wrapper">
+                <table>
+                    <thead><tr><th>#</th><th>Team</th><th>Game</th><th>Captain</th><th>Members</th><th>W</th><th>L</th><th>Actions</th></tr></thead>
+                    <tbody>
+                        ${teams.length === 0 ? '<tr><td colspan="8" class="empty-state">No teams</td></tr>' :
+                    teams.map((t, i) => `
+                            <tr>
+                                <td>${i + 1}</td>
+                                <td>
+                                    <div style="display:flex;align-items:center;gap:8px">
+                                        <div class="avatar" style="width:32px;height:32px;font-size:0.7rem">${(t.tag || t.name.substring(0, 2)).toUpperCase()}</div>
+                                        <span style="font-weight:600;color:var(--text-primary)">${t.name}</span>
+                                    </div>
+                                </td>
+                                <td>${t.game}</td>
+                                <td>${t.captain_name}</td>
+                                <td>${t.member_count}</td>
+                                <td style="color:var(--accent-green);font-weight:600">${t.wins}</td>
+                                <td style="color:var(--accent-red)">${t.losses}</td>
+                                <td><a href="/pages/team-detail.html?id=${t.id}" class="btn btn-sm btn-secondary">View</a></td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    `;
+        }
+
+        async function renderUsers() {
+            const content = document.getElementById('main-content');
+            content.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+            const res = await GET('/admin/users');
+            const users = res?.ok ? res.data : [];
+
+            content.innerHTML = `
+        <h2 style="margin-bottom:1.5rem">👤 Users (${users.length})</h2>
+        <div class="card">
+            <div class="table-wrapper">
+                <table>
+                    <thead><tr><th>#</th><th>Username</th><th>Email</th><th>Gaming ID</th><th>Role</th><th>Joined</th></tr></thead>
+                    <tbody>
+                        ${users.map((u, i) => `
+                            <tr>
+                                <td>${i + 1}</td>
+                                <td style="font-weight:600;color:var(--text-primary)">${u.username}</td>
+                                <td style="color:var(--text-muted)">${u.email}</td>
+                                <td>${u.gaming_id || '—'}</td>
+                                <td>${u.role === 'admin' ? '<span class="badge badge-registration">Admin</span>' : '<span class="badge badge-completed">Player</span>'}</td>
+                                <td style="color:var(--text-muted)">${formatDate(u.created_at)}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    `;
+        }
+
+        async function renderAnnouncements() {
+            const content = document.getElementById('main-content');
+            content.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+            const res = await GET('/announcements');
+            const announcements = res?.ok ? res.data : [];
+
+            content.innerHTML = `
+        <div class="action-row"><h2>📢 Announcements</h2></div>
+        <div class="card" style="margin-bottom:1.5rem">
+            <div class="card-header"><h3>Post Announcement</h3></div>
+            <div class="card-body">
+                <div id="ann-alert"></div>
+                <div class="form-group">
+                    <label class="form-label">Title</label>
+                    <input type="text" id="ann-title" class="form-control" placeholder="Announcement title">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Content</label>
+                    <textarea id="ann-content" class="form-control" placeholder="Write announcement..."></textarea>
+                </div>
+                <button class="btn btn-primary" onclick="postAnnouncement()">📢 Publish</button>
+            </div>
+        </div>
+        <h3 style="margin-bottom:1rem">Recent Announcements</h3>
+        ${announcements.length === 0 ? '<div class="empty-state"><div class="icon">📭</div><p>No announcements yet</p></div>' :
+                    announcements.map(a => `
+            <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:1.25rem;margin-bottom:0.75rem">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem">
+                    <h4>${a.title}</h4>
+                    <span style="color:var(--text-muted);font-size:0.8rem">${formatDate(a.created_at)}</span>
+                </div>
+                <p style="color:var(--text-secondary);font-size:0.9rem">${a.content}</p>
+            </div>
+        `).join('')}
+    `;
+        }
+
+        async function postAnnouncement() {
+            const title = document.getElementById('ann-title').value.trim();
+            const content = document.getElementById('ann-content').value.trim();
+            const alertBox = document.getElementById('ann-alert');
+
+            if (!title || !content) {
+                alertBox.innerHTML = '<div class="alert alert-error">Title and content required.</div>';
+                return;
+            }
+
+            const res = await POST('/announcements', { title, content });
+            if (res && res.ok) {
+                showToast('Announcement published!', 'success');
+                renderAnnouncements();
+            } else {
+                alertBox.innerHTML = `<div class="alert alert-error">${res?.data?.error || 'Failed.'}</div>`;
+            }
+        }
+
+        async function renderNotifBroadcast() {
+            const content = document.getElementById('main-content');
+            content.innerHTML = `
+        <h2 style="margin-bottom:1.5rem">🔔 Broadcast Notification</h2>
+        <div class="card" style="max-width:600px">
+            <div class="card-header"><h3>Send to All Players</h3></div>
+            <div class="card-body">
+                <div id="notif-broadcast-alert"></div>
+                <div class="form-group">
+                    <label class="form-label">Title</label>
+                    <input type="text" id="nb-title" class="form-control" placeholder="Important Update">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Message</label>
+                    <textarea id="nb-msg" class="form-control" placeholder="Write your message to all players..."></textarea>
+                </div>
+                <button class="btn btn-primary" onclick="broadcastNotif()">🚀 Send to All Players</button>
+            </div>
+        </div>
+    `;
+        }
+
+        async function broadcastNotif() {
+            const title = document.getElementById('nb-title').value.trim();
+            const message = document.getElementById('nb-msg').value.trim();
+            const alertBox = document.getElementById('notif-broadcast-alert');
+
+            if (!title || !message) {
+                alertBox.innerHTML = '<div class="alert alert-error">Title and message required.</div>';
+                return;
+            }
+
+            const res = await POST('/notifications/broadcast', { title, message });
+            if (res && res.ok) {
+                alertBox.innerHTML = `<div class="alert alert-success">${res.data.message}</div>`;
+                document.getElementById('nb-title').value = '';
+                document.getElementById('nb-msg').value = '';
+            } else {
+                alertBox.innerHTML = `<div class="alert alert-error">${res?.data?.error || 'Failed.'}</div>`;
+            }
+        }
+
+        async function renderSupport() {
+            const content = document.getElementById('main-content');
+            content.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+            const res = await GET('/support');
+            const tickets = res?.ok ? res.data : [];
+            const open = tickets.filter(t => t.status !== 'resolved');
+
+            content.innerHTML = `
+        <h2 style="margin-bottom:1.5rem">🆘 Support Tickets</h2>
+        ${open.length > 0 ? `<div class="alert alert-warning">${open.length} open ticket(s) need response</div>` : ''}
+        <div class="card">
+            <div class="table-wrapper">
+                <table>
+                    <thead><tr><th>User</th><th>Subject</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead>
+                    <tbody>
+                        ${tickets.length === 0 ? '<tr><td colspan="5" class="empty-state">No tickets</td></tr>' :
+                    tickets.map(t => `
+                            <tr>
+                                <td style="font-weight:600">${t.username}</td>
+                                <td>${t.subject}</td>
+                                <td>${statusBadge(t.status)}</td>
+                                <td style="color:var(--text-muted)">${formatDate(t.created_at)}</td>
+                                <td>
+                                    <button class="btn btn-sm btn-secondary" onclick="expandTicket(${t.id}, '${escapeHTML(t.message)}', '${escapeHTML(t.admin_response || '')}')">
+                                        View & Reply
+                                    </button>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div id="ticket-detail" class="hidden" style="margin-top:1.5rem"></div>
+    `;
+        }
+
+        function escapeHTML(str) {
+            if (!str) return '';
+            return str
+                .replace(/'/g, "\\'")
+                .replace(/"/g, '&quot;')
+                .replace(/\n/g, ' ');
+        }
+
+        function expandTicket(id, message, existingResponse) {
+            const detail = document.getElementById('ticket-detail');
+            detail.classList.remove('hidden');
+            detail.innerHTML = `
+        <div class="card" style="max-width:600px">
+            <div class="card-header"><h3>Ticket #${id}</h3></div>
+            <div class="card-body">
+                <div style="background:rgba(255,255,255,0.03);border-radius:8px;padding:1rem;margin-bottom:1.5rem">
+                    <div style="font-size:0.75rem;color:var(--text-muted);margin-bottom:6px">User Message:</div>
+                    <p style="color:var(--text-secondary)">${message}</p>
+                </div>
+                ${existingResponse ? `<div class="alert alert-info"><strong>Previous response:</strong> ${existingResponse}</div>` : ''}
+                <div id="ticket-alert-${id}"></div>
+                <div class="form-group">
+                    <label class="form-label">Your Response</label>
+                    <textarea id="ticket-resp-${id}" class="form-control">${existingResponse}</textarea>
+                </div>
+                <div style="display:flex;gap:0.75rem">
+                    <button class="btn btn-primary" onclick="replyTicket(${id})">Send Response</button>
+                    <button class="btn btn-secondary" onclick="document.getElementById('ticket-detail').classList.add('hidden')">Close</button>
+                </div>
+            </div>
+        </div>
+    `;
+            detail.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        async function replyTicket(id) {
+            const response = document.getElementById(`ticket-resp-${id}`).value.trim();
+            const alertBox = document.getElementById(`ticket-alert-${id}`);
+            if (!response) { alertBox.innerHTML = '<div class="alert alert-error">Please write a response.</div>'; return; }
+
+            const res = await PUT(`/support/${id}`, { admin_response: response, status: 'resolved' });
+            if (res && res.ok) {
+                showToast('Response sent!', 'success');
+                renderSupport();
+            } else {
+                alertBox.innerHTML = `<div class="alert alert-error">${res?.data?.error || 'Failed.'}</div>`;
+            }
+        }
+
+        // Create tournament handler
+        async function createTournament() {
+            const name = document.getElementById('ct-name').value.trim();
+            const game = document.getElementById('ct-game').value;
+            const format = document.getElementById('ct-format').value;
+            const max_teams = document.getElementById('ct-max').value;
+            const prize_pool = document.getElementById('ct-prize').value.trim();
+            const start_date = document.getElementById('ct-start').value;
+            const end_date = document.getElementById('ct-end').value;
+            const registration_deadline = document.getElementById('ct-deadline').value;
+            const description = document.getElementById('ct-desc').value.trim();
+            const rules = document.getElementById('ct-rules').value.trim();
+            const alertBox = document.getElementById('ct-alert');
+
+            if (!name || !start_date) {
+                alertBox.innerHTML = '<div class="alert alert-error">Name and start date are required.</div>';
+                return;
+            }
+
+            const res = await POST('/tournaments', { name, game, format, max_teams: parseInt(max_teams), prize_pool, start_date, end_date, registration_deadline, description, rules });
+            if (res && res.ok) {
+                showToast('Tournament created!', 'success');
+                closeModal('create-tournament-modal');
+                const tRes = await GET('/tournaments');
+                if (tRes?.ok) allTournaments = tRes.data;
+                renderTournaments();
+            } else {
+                alertBox.innerHTML = `<div class="alert alert-error">${res?.data?.error || 'Failed.'}</div>`;
+            }
+        }
+
+        async function changeStatus(id, status) {
+            if (!status) return;
+            const t = allTournaments.find(t => t.id === id);
+            if (!t) return;
+            const res = await PUT(`/tournaments/${id}`, { ...t, status });
+            if (res && res.ok) {
+                showToast('Status updated!', 'success');
+                renderTournaments();
+            } else {
+                showToast('Failed to update status', 'error');
+            }
+        }
+
+        async function generateBracket(id, name) {
+            if (!confirm(`Generate Round 1 bracket for "${name}"? This will auto-pair all approved teams.`)) return;
+            const res = await POST(`/matches/generate/${id}`, {});
+            if (res && res.ok) {
+                showToast(res.data.message, 'success');
+                renderMatches();
+            } else {
+                showToast(res?.data?.error || 'Failed', 'error');
+            }
+        }
+
+        async function openScheduleMatch() {
+            if (allTournaments.length === 0) {
+                const res = await GET('/tournaments');
+                if (res?.ok) allTournaments = res.data;
+            }
+            const select = document.getElementById('sm-tournament');
+            select.innerHTML = '<option value="">Select tournament...</option>' +
+                allTournaments.map(t => `<option value="${t.id}">${t.name}</option>`).join('');
+            document.getElementById('sm-alert').innerHTML = '';
+            openModal('schedule-match-modal');
+        }
+
+        async function loadTeamsForMatch() {
+            const tId = document.getElementById('sm-tournament').value;
+            if (!tId) return;
+            const res = await GET(`/tournaments/${tId}`);
+            if (!res?.ok) return;
+            const teams = res.data.teams;
+            const opts = '<option value="">Select team...</option>' + teams.map(t => `<option value="${t.id}">[${t.tag || '—'}] ${t.name}</option>`).join('');
+            document.getElementById('sm-team1').innerHTML = opts;
+            document.getElementById('sm-team2').innerHTML = opts;
+        }
+
+        async function scheduleMatch() {
+            const tournament_id = document.getElementById('sm-tournament').value;
+            const team1_id = document.getElementById('sm-team1').value;
+            const team2_id = document.getElementById('sm-team2').value;
+            const round = document.getElementById('sm-round').value;
+            const match_date = document.getElementById('sm-date').value;
+            const alertBox = document.getElementById('sm-alert');
+
+            if (!tournament_id || !team1_id || !team2_id || team1_id === team2_id) {
+                alertBox.innerHTML = '<div class="alert alert-error">Please select a tournament and two different teams.</div>';
+                return;
+            }
+
+            const res = await POST('/matches', { tournament_id: parseInt(tournament_id), team1_id: parseInt(team1_id), team2_id: parseInt(team2_id), round: parseInt(round), match_date: match_date || null });
+            if (res && res.ok) {
+                showToast('Match scheduled!', 'success');
+                closeModal('schedule-match-modal');
+                renderMatches();
+            } else {
+                alertBox.innerHTML = `<div class="alert alert-error">${res?.data?.error || 'Failed.'}</div>`;
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', loadAdminData);
+    </script>
+</body>
+
+</html>

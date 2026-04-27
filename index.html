@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZU E-Sports | Tournament Management</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- ===== NAVBAR ===== -->
+<nav class="navbar">
+    <a href="index.html" class="nav-logo">⚡ ZU<span>ESPORTS</span></a>
+    <ul class="nav-links" id="nav-links">
+        <li><a href="index.html" class="active">Home</a></li>
+        <li><a href="pages/tournaments.html">Tournaments</a></li>
+        <li><a href="pages/teams.html">Teams</a></li>
+        <li><a href="pages/leaderboard.html">Leaderboard</a></li>
+        <li><a href="pages/help.html">Help</a></li>
+    </ul>
+    <div class="nav-actions" id="nav-actions">
+        <!-- Filled by JS -->
+    </div>
+    <button class="menu-toggle" id="menu-toggle">☰</button>
+</nav>
+
+<div class="page-wrapper">
+
+    <!-- ===== HERO ===== -->
+    <section class="hero">
+        <div class="container">
+            <div class="hero-badge">🏆 Zagazig University</div>
+            <h1 class="hero-title">
+                COMPETE.<br>
+                <span class="highlight">DOMINATE.</span><br>
+                CHAMPION.
+            </h1>
+            <p class="hero-subtitle">
+                The official E-Sports Tournament platform for Zagazig University. 
+                Register your team, compete in tournaments, and climb the leaderboard.
+            </p>
+            <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;">
+                <a href="pages/tournaments.html" class="btn btn-primary btn-lg">🎮 Browse Tournaments</a>
+                <a href="pages/register.html" class="btn btn-secondary btn-lg" id="join-btn">Join Now</a>
+            </div>
+            <div class="hero-stats" id="hero-stats">
+                <div class="hero-stat">
+                    <span class="number" id="stat-tournaments">—</span>
+                    <span class="label">Tournaments</span>
+                </div>
+                <div class="hero-stat">
+                    <span class="number" id="stat-teams">—</span>
+                    <span class="label">Teams</span>
+                </div>
+                <div class="hero-stat">
+                    <span class="number" id="stat-players">—</span>
+                    <span class="label">Players</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== ANNOUNCEMENTS ===== -->
+    <section class="section">
+        <div class="container">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;">
+                <h2>📢 Announcements</h2>
+                <a href="pages/tournaments.html" style="color:var(--accent);font-size:0.9rem;">View All →</a>
+            </div>
+            <div id="announcements-list">
+                <div class="loading"><div class="spinner"></div> Loading...</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== FEATURED TOURNAMENTS ===== -->
+    <section class="section" style="padding-top:0">
+        <div class="container">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;">
+                <h2>🏟️ Active Tournaments</h2>
+                <a href="pages/tournaments.html" style="color:var(--accent);font-size:0.9rem;">See All →</a>
+            </div>
+            <div class="tournament-grid" id="featured-tournaments">
+                <div class="loading"><div class="spinner"></div> Loading...</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== TOP TEAMS ===== -->
+    <section class="section" style="padding-top:0">
+        <div class="container">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;">
+                <h2>🥇 Top Teams</h2>
+                <a href="pages/leaderboard.html" style="color:var(--accent);font-size:0.9rem;">Full Leaderboard →</a>
+            </div>
+            <div class="card">
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Team</th>
+                                <th>Game</th>
+                                <th>W</th>
+                                <th>L</th>
+                                <th>Win %</th>
+                            </tr>
+                        </thead>
+                        <tbody id="top-teams-table">
+                            <tr><td colspan="6" class="loading"><div class="spinner"></div></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </section>
+
+</div>
+
+<!-- ===== FOOTER ===== -->
+<footer>
+    <div class="footer-title">⚡ ZU ESPORTS</div>
+    <p>Faculty of Computers & Informatics — Zagazig University</p>
+    <p style="margin-top:0.5rem;">Academic Year 2025/2026</p>
+</footer>
+
+<script src="js/app.js"></script>
+<script>
+// Load homepage data
+async function loadHomepage() {
+    // Update join button if logged in
+    if (isLoggedIn()) {
+        document.getElementById('join-btn').href = 'dashboard.html';
+        document.getElementById('join-btn').textContent = 'My Dashboard';
+    }
+
+    // Load stats
+    const [tourRes, teamRes] = await Promise.all([
+        GET('/tournaments'),
+        GET('/teams')
+    ]);
+
+    if (tourRes && tourRes.ok) {
+        document.getElementById('stat-tournaments').textContent = tourRes.data.length;
+    }
+    if (teamRes && teamRes.ok) {
+        document.getElementById('stat-teams').textContent = teamRes.data.length;
+        // Estimate players (teams × avg 4)
+        document.getElementById('stat-players').textContent = teamRes.data.length * 4 + '+';
+    }
+
+    // Load announcements
+    const annRes = await GET('/announcements');
+    const annList = document.getElementById('announcements-list');
+    if (annRes && annRes.ok && annRes.data.length > 0) {
+        annList.innerHTML = annRes.data.map(a => `
+            <div class="card mb-2" style="padding:1.25rem;margin-bottom:0.75rem;">
+                <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.5rem;">
+                    <span style="font-size:1.2rem">📌</span>
+                    <h4 style="margin:0">${a.title}</h4>
+                    <span style="margin-left:auto;color:var(--text-muted);font-size:0.8rem">${formatDate(a.created_at)}</span>
+                </div>
+                <p style="color:var(--text-secondary);font-size:0.9rem;margin-left:2rem">${a.content}</p>
+            </div>
+        `).join('');
+    } else {
+        annList.innerHTML = '<div class="empty-state"><div class="icon">📭</div><p>No announcements yet</p></div>';
+    }
+
+    // Load featured tournaments (ongoing + registration)
+    if (tourRes && tourRes.ok) {
+        const active = tourRes.data.filter(t => t.status === 'ongoing' || t.status === 'registration').slice(0, 3);
+        const grid = document.getElementById('featured-tournaments');
+
+        if (active.length === 0) {
+            grid.innerHTML = '<div class="empty-state"><div class="icon">🏟️</div><p>No active tournaments right now</p></div>';
+        } else {
+            grid.innerHTML = active.map(t => `
+                <div class="tournament-card" onclick="window.location.href='/pages/tournament-detail.html?id=${t.id}'">
+                    <div class="tournament-card-banner">🎮 ${t.game}</div>
+                    <div class="tournament-card-body">
+                        <div class="tournament-card-title">${t.name}</div>
+                        <div class="tournament-card-meta">
+                            <span class="meta-item">🎯 ${t.format.replace('_', ' ')}</span>
+                            <span class="meta-item">👥 ${t.max_teams} teams max</span>
+                            <span class="meta-item">🏆 ${t.prize_pool || 'No prize listed'}</span>
+                        </div>
+                    </div>
+                    <div class="tournament-card-footer">
+                        ${statusBadge(t.status)}
+                        <span style="color:var(--text-muted);font-size:0.8rem">📅 ${formatDate(t.start_date)}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+    }
+
+    // Load top teams
+    const lbRes = await GET('/leaderboard');
+    const tbody = document.getElementById('top-teams-table');
+    if (lbRes && lbRes.ok && lbRes.data.length > 0) {
+        tbody.innerHTML = lbRes.data.slice(0, 5).map((t, i) => `
+            <tr onclick="window.location.href='/pages/team-detail.html?id=${t.id}'" style="cursor:pointer">
+                <td><span class="rank-number">#${i + 1}</span></td>
+                <td>
+                    <div style="display:flex;align-items:center;gap:10px">
+                        <div class="avatar" style="width:32px;height:32px;font-size:0.7rem">${t.tag || t.name.substring(0,3).toUpperCase()}</div>
+                        <div>
+                            <div style="font-weight:600;color:var(--text-primary)">${t.name}</div>
+                            <div style="font-size:0.75rem;color:var(--text-muted)">[${t.tag || '—'}]</div>
+                        </div>
+                    </div>
+                </td>
+                <td>${t.game}</td>
+                <td style="color:var(--accent-green);font-weight:600">${t.wins}</td>
+                <td style="color:var(--accent-red)">${t.losses}</td>
+                <td style="color:var(--accent)">${t.win_rate || 0}%</td>
+            </tr>
+        `).join('');
+    } else {
+        tbody.innerHTML = '<tr><td colspan="6" class="empty-state">No teams yet</td></tr>';
+    }
+}
+
+document.addEventListener('DOMContentLoaded', loadHomepage);
+</script>
+</body>
+</html>

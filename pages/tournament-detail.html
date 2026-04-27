@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tournament | ZU E-Sports</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+
+<body>
+    <nav class="navbar">
+        <a href="../index.html" class="nav-logo">⚡ ZU<span>ESPORTS</span></a>
+        <ul class="nav-links" id="nav-links">
+            <li><a href="../index.html">Home</a></li>
+            <li><a href="tournaments.html" class="active">Tournaments</a></li>
+            <li><a href="teams.html">Teams</a></li>
+            <li><a href="leaderboard.html">Leaderboard</a></li>
+        </ul>
+        <div class="nav-actions" id="nav-actions"></div>
+        <button class="menu-toggle" id="menu-toggle">☰</button>
+    </nav>
+
+    <div class="page-wrapper">
+        <div id="page-content">
+            <div class="loading" style="padding:5rem">
+                <div class="spinner"></div> Loading...
+            </div>
+        </div>
+    </div>
+
+    <!-- Register Team Modal -->
+    <div class="modal-overlay" id="register-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <span class="modal-title">📝 Register Your Team</span>
+                <button class="modal-close" onclick="closeModal('register-modal')">✕</button>
+            </div>
+            <div class="modal-body">
+                <p style="color:var(--text-secondary);margin-bottom:1.5rem">Select your team to register for this
+                    tournament. You must be the team captain.</p>
+                <div id="modal-alert"></div>
+                <div class="form-group">
+                    <label class="form-label">Your Team</label>
+                    <select id="team-select" class="form-control">
+                        <option value="">Loading...</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('register-modal')">Cancel</button>
+                <button class="btn btn-primary" onclick="submitRegistration()">Register Team</button>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="footer-title">⚡ ZU ESPORTS</div>
+        <p>Faculty of Computers & Informatics — Zagazig University</p>
+    </footer>
+
+    <script src="../js/app.js"></script>
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const tournamentId = urlParams.get('id');
+        let tournament = null;
+
+        async function loadTournament() {
+            if (!tournamentId) {
+                document.getElementById('page-content').innerHTML = '<div class="empty-state" style="padding:5rem"><h3>Tournament not found</h3></div>';
+                return;
+            }
+
+            const res = await GET(`/tournaments/${tournamentId}`);
+            if (!res || !res.ok) {
+                document.getElementById('page-content').innerHTML = '<div class="empty-state" style="padding:5rem"><h3>Tournament not found</h3></div>';
+                return;
+            }
+
+            tournament = res.data;
+            document.title = `${tournament.name} | ZU E-Sports`;
+            renderTournament();
+        }
+
+        function renderTournament() {
+            const t = tournament;
+            const content = document.getElementById('page-content');
+
+            // Build bracket by round
+            const rounds = {};
+            t.matches.forEach(m => {
+                if (!rounds[m.round]) rounds[m.round] = [];
+                rounds[m.round].push(m);
+            });
+
+            const bracketHTML = Object.keys(rounds).length > 0 ? `
+        <div class="bracket-container">
+            ${Object.entries(rounds).map(([round, matches]) => `
+                <div class="bracket-round">
+                    <div class="bracket-round-title">Round ${round}</div>
+                    ${matches.map(m => `
+                        <div class="bracket-match">
+                            <div class="bracket-team ${m.winner_id == m.team1_id ? 'winner' : m.winner_id ? 'loser' : ''}">
+                                <span>[${m.team1_tag}] ${m.team1_name}</span>
+                                <span class="bracket-score">${m.score_team1}</span>
+                            </div>
+                            <div class="bracket-team ${m.winner_id == m.team2_id ? 'winner' : m.winner_id ? 'loser' : ''}">
+                                <span>[${m.team2_tag}] ${m.team2_name}</span>
+                                <span class="bracket-score">${m.score_team2}</span>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `).join('')}
+        </div>
+    ` : '<div class="empty-state"><div class="icon">📋</div><p>Bracket will be generated once registration closes and matches are scheduled.</p></div>';
+
+            const canRegister = t.status === 'registration' && isLoggedIn();
+
+            content.innerHTML = `
+        <!-- Tournament Header -->
+        <div style="background:linear-gradient(135deg,#0d1b2a,#111827);border-bottom:1px solid var(--border);padding:3rem 0">
+            <div class="container">
+                <div style="display:flex;align-items:flex-start;gap:2rem;flex-wrap:wrap">
+                    <div style="flex:1">
+                        <a href="tournaments.html" style="color:var(--text-muted);font-size:0.85rem">← Back to Tournaments</a>
+                        <div style="margin-top:0.75rem;margin-bottom:0.5rem">${statusBadge(t.status)}</div>
+                        <h1 style="margin-bottom:0.75rem;font-size:clamp(1.5rem,3vw,2.5rem)">${t.name}</h1>
+                        <div style="display:flex;gap:1.5rem;flex-wrap:wrap;color:var(--text-secondary);font-size:0.9rem">
+                            <span>🎮 ${t.game}</span>
+                            <span>📋 ${t.format.replace(/_/g, ' ')}</span>
+                            <span>👥 Max ${t.max_teams} teams</span>
+                            <span>🏆 ${t.prize_pool || 'No prize'}</span>
+                        </div>
+                    </div>
+                    ${canRegister ? `
+                        <button class="btn btn-primary btn-lg" onclick="openRegisterModal()">
+                            📝 Register Team
+                        </button>
+                    ` : ''}
+                    ${!isLoggedIn() && t.status === 'registration' ? `
+                        <a href="login.html" class="btn btn-secondary btn-lg">Login to Register</a>
+                    ` : ''}
+                </div>
+
+                <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:1rem;margin-top:2rem">
+                    <div style="background:rgba(255,255,255,0.04);border-radius:8px;padding:1rem">
+                        <div style="color:var(--text-muted);font-size:0.75rem;margin-bottom:4px">Start Date</div>
+                        <div style="font-weight:600">${formatDate(t.start_date)}</div>
+                    </div>
+                    <div style="background:rgba(255,255,255,0.04);border-radius:8px;padding:1rem">
+                        <div style="color:var(--text-muted);font-size:0.75rem;margin-bottom:4px">End Date</div>
+                        <div style="font-weight:600">${formatDate(t.end_date)}</div>
+                    </div>
+                    <div style="background:rgba(255,255,255,0.04);border-radius:8px;padding:1rem">
+                        <div style="color:var(--text-muted);font-size:0.75rem;margin-bottom:4px">Reg. Deadline</div>
+                        <div style="font-weight:600">${formatDate(t.registration_deadline)}</div>
+                    </div>
+                    <div style="background:rgba(255,255,255,0.04);border-radius:8px;padding:1rem">
+                        <div style="color:var(--text-muted);font-size:0.75rem;margin-bottom:4px">Teams Registered</div>
+                        <div style="font-weight:600;color:var(--accent)">${t.teams.length} / ${t.max_teams}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tournament Content -->
+        <div class="container section">
+            <div class="tabs" id="tabs">
+                <button class="tab-btn active" data-tab="tab-overview">📖 Overview</button>
+                <button class="tab-btn" data-tab="tab-teams">👥 Teams (${t.teams.length})</button>
+                <button class="tab-btn" data-tab="tab-bracket">🏆 Bracket</button>
+                <button class="tab-btn" data-tab="tab-schedule">📅 Schedule</button>
+                <button class="tab-btn" data-tab="tab-rules">📋 Rules</button>
+            </div>
+
+            <!-- Overview -->
+            <div class="tab-pane active" id="tab-overview">
+                <div class="card card-body">
+                    <h3 style="margin-bottom:1rem">About This Tournament</h3>
+                    <p style="color:var(--text-secondary);line-height:1.8">${t.description || 'No description provided.'}</p>
+                </div>
+            </div>
+
+            <!-- Teams -->
+            <div class="tab-pane" id="tab-teams">
+                ${t.teams.length === 0 ? '<div class="empty-state"><div class="icon">👥</div><p>No approved teams yet</p></div>' : `
+                <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem">
+                    ${t.teams.map(team => `
+                        <div class="card card-body" style="display:flex;align-items:center;gap:1rem;cursor:pointer"
+                            onclick="window.location.href='/pages/team-detail.html?id=${team.id}'">
+                            <div class="avatar avatar-lg">${(team.tag || team.name.substring(0, 3)).toUpperCase()}</div>
+                            <div>
+                                <div style="font-weight:700;font-size:1rem">${team.name}</div>
+                                <div style="color:var(--text-muted);font-size:0.85rem">[${team.tag || '—'}] • ${team.game}</div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>`}
+            </div>
+
+            <!-- Bracket -->
+            <div class="tab-pane" id="tab-bracket">
+                <div class="card">
+                    <div class="card-header"><h3>Tournament Bracket</h3></div>
+                    <div style="padding:1.5rem;overflow-x:auto">${bracketHTML}</div>
+                </div>
+            </div>
+
+            <!-- Schedule -->
+            <div class="tab-pane" id="tab-schedule">
+                ${t.matches.length === 0 ? '<div class="empty-state"><div class="icon">📅</div><p>No matches scheduled yet</p></div>' : `
+                <div class="card">
+                    <div class="table-wrapper">
+                        <table>
+                            <thead><tr><th>Round</th><th>Team 1</th><th>vs</th><th>Team 2</th><th>Date</th><th>Score</th><th>Status</th></tr></thead>
+                            <tbody>
+                                ${t.matches.map(m => `
+                                    <tr>
+                                        <td>R${m.round}</td>
+                                        <td style="color:${m.winner_id == m.team1_id ? 'var(--accent-green)' : 'inherit'};font-weight:${m.winner_id == m.team1_id ? '700' : '400'}">[${m.team1_tag}] ${m.team1_name}</td>
+                                        <td style="color:var(--text-muted)">vs</td>
+                                        <td style="color:${m.winner_id == m.team2_id ? 'var(--accent-green)' : 'inherit'};font-weight:${m.winner_id == m.team2_id ? '700' : '400'}">[${m.team2_tag}] ${m.team2_name}</td>
+                                        <td>${formatDateTime(m.match_date)}</td>
+                                        <td style="font-family:var(--font-display);color:var(--accent)">${m.score_team1} - ${m.score_team2}</td>
+                                        <td>${statusBadge(m.status)}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>`}
+            </div>
+
+            <!-- Rules -->
+            <div class="tab-pane" id="tab-rules">
+                <div class="card card-body">
+                    <h3 style="margin-bottom:1rem">Tournament Rules</h3>
+                    <pre style="font-family:var(--font-body);white-space:pre-wrap;color:var(--text-secondary);line-height:2">${t.rules || 'No specific rules provided. Standard rules apply.'}</pre>
+                </div>
+            </div>
+        </div>
+    `;
+
+            setupTabs('tabs');
+        }
+
+        async function openRegisterModal() {
+            if (!isLoggedIn()) {
+                window.location.href = '/pages/login.html';
+                return;
+            }
+
+            // Load user's team
+            const res = await GET('/teams/my/team');
+            const select = document.getElementById('team-select');
+
+            if (!res || !res.data) {
+                document.getElementById('modal-alert').innerHTML = `
+            <div class="alert alert-warning">You don't have a team yet. 
+            <a href="/pages/dashboard.html">Create one first →</a></div>
+        `;
+                select.innerHTML = '<option>No team found</option>';
+            } else {
+                select.innerHTML = `<option value="${res.data.id}">[${res.data.tag || res.data.name}] ${res.data.name}</option>`;
+            }
+
+            openModal('register-modal');
+        }
+
+        async function submitRegistration() {
+            const team_id = document.getElementById('team-select').value;
+            const alertBox = document.getElementById('modal-alert');
+
+            if (!team_id) {
+                alertBox.innerHTML = '<div class="alert alert-error">Please select a team.</div>';
+                return;
+            }
+
+            const res = await POST(`/tournaments/${tournamentId}/register`, { team_id: parseInt(team_id) });
+
+            if (res && res.ok) {
+                alertBox.innerHTML = '<div class="alert alert-success">Registration submitted! Waiting for admin approval.</div>';
+                setTimeout(() => closeModal('register-modal'), 2000);
+            } else {
+                alertBox.innerHTML = `<div class="alert alert-error">${res?.data?.error || 'Registration failed.'}</div>`;
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', loadTournament);
+    </script>
+</body>
+
+</html>
